@@ -24,6 +24,8 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
     val tasks by viewModel.activeTasks.collectAsState(initial = emptyList())
     val today = remember { LocalDate.now() }
     val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+    val completedCount by viewModel.completedCount.collectAsState()
+
 
     val dueToday = tasks.filter {
         try {
@@ -49,7 +51,7 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
             TaskStatCard("Due Today", dueToday.size)
             TaskStatCard("Overdue", overdue.size)
-            TaskStatCard("Completed", viewModel.completedCount)
+            TaskStatCard("Completed", completedCount)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

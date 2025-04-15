@@ -15,14 +15,16 @@ class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks
 
+
     // NEW: Only show tasks that are not completed
     val activeTasks: StateFlow<List<Task>> = tasks
         .map { it.filter { task -> !task.isCompleted } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     // NEW: Count of completed tasks
-    val completedCount: Int
-        get() = _tasks.value.count { it.isCompleted }
+    val completedCount: StateFlow<Int> = tasks
+        .map { it.count { task -> task.isCompleted } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     init {
         loadTasks()
@@ -30,7 +32,7 @@ class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
 
     private fun loadTasks() {
         viewModelScope.launch {
-            _tasks.value = taskDao.getActiveTasks() // If this only fetches incomplete tasks, rename it
+            _tasks.value = taskDao.getAllTasks()
         }
     }
 
