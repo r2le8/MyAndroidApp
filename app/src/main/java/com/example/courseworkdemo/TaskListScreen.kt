@@ -1,4 +1,6 @@
 package com.example.courseworkdemo
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
@@ -13,12 +15,13 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.ArrowBack
-
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
     val taskList by viewModel.tasks.collectAsState()
-
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -41,16 +44,22 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
                     onDelete = { viewModel.deleteTask(task.id) },
                     onEdit = {
                         // Optional: Navigate to EditTaskScreen
-                        // navController.navigate("edit/${task.id}")
-                    }
+                    },
+                    onShare = { shareTask(context, task) } // ✅ Pass context-based share callback
                 )
+
             }
         }
     }
 }
-
 @Composable
-fun TaskCard(task: Task, onComplete: () -> Unit, onDelete: () -> Unit, onEdit: () -> Unit) {
+fun TaskCard(
+    task: Task,
+    onComplete: () -> Unit,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+    onShare: () -> Unit // ✅ New param
+) {
     val priorityColor = when (task.priority.lowercase()) {
         "high" -> Color.Red
         "medium" -> Color.Yellow
@@ -85,7 +94,20 @@ fun TaskCard(task: Task, onComplete: () -> Unit, onDelete: () -> Unit, onEdit: (
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete Task")
                 }
+                IconButton(onClick = onShare) { // ✅ Share icon button
+                    Icon(Icons.Default.Share, contentDescription = "Share Task")
+                }
             }
         }
     }
 }
+
+fun shareTask(context: Context, task: Task) {
+    val shareIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, "Task: ${task.name}\n${task.description}")
+        type = "text/plain"
+    }
+    context.startActivity(Intent.createChooser(shareIntent, "Share task via"))
+}
+
