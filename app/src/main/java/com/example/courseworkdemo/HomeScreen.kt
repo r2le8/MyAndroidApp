@@ -15,8 +15,7 @@ import androidx.navigation.NavController
 
 // For dates
 import java.time.LocalDate
-
-
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -24,9 +23,23 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
     val context = LocalContext.current
     val tasks by viewModel.activeTasks.collectAsState(initial = emptyList())
     val today = remember { LocalDate.now() }
+    val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
-    val dueToday = tasks.filter { LocalDate.parse(it.dueDate) == today }
-    val overdue = tasks.filter { LocalDate.parse(it.dueDate) < today }
+    val dueToday = tasks.filter {
+        try {
+            LocalDate.parse(it.dueDate, formatter) == today
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    val overdue = tasks.filter {
+        try {
+            LocalDate.parse(it.dueDate, formatter) < today
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Welcome Back!", style = MaterialTheme.typography.headlineMedium)
