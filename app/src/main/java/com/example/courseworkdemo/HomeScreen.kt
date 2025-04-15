@@ -53,11 +53,19 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = { navController.navigate("task_creation") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("➕ Add Task")
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Button(
+                onClick = { navController.navigate("task_creation") },
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            ) {
+                Text("➕ Add Task")
+            }
+            Button(
+                onClick = { navController.navigate("task_list") },
+                modifier = Modifier.weight(1f).padding(start = 8.dp)
+            ) {
+                Text("📋 Task List")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

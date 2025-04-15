@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
                     composable("task_creation") {
                         TaskCreationScreen(navController, viewModel)
                     }
-                    composable("completed_tasks") {
+                    composable("task_list") {
                         TaskListScreen(navController, viewModel)
                     }
                 }

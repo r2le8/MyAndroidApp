@@ -12,23 +12,39 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.ArrowBack
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
     val taskList by viewModel.tasks.collectAsState()
 
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        items(taskList) { task ->
-            TaskCard(
-                task = task,
-                onComplete = { viewModel.markTaskCompleted(task) },
-                onDelete = { viewModel.deleteTask(task.id) }, // assuming you have this
-                onEdit = {
-                    // Navigate to EditTaskScreen (optional)
-                    // navController.navigate("edit/${task.id}")
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Task List") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
                 }
             )
+        }
+    ) { paddingValues ->
+        LazyColumn(modifier = Modifier
+            .padding(paddingValues)
+            .padding(16.dp)) {
+            items(taskList) { task ->
+                TaskCard(
+                    task = task,
+                    onComplete = { viewModel.markTaskCompleted(task) },
+                    onDelete = { viewModel.deleteTask(task.id) },
+                    onEdit = {
+                        // Optional: Navigate to EditTaskScreen
+                        // navController.navigate("edit/${task.id}")
+                    }
+                )
+            }
         }
     }
 }
