@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +29,10 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
     val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
     val completedCount by viewModel.completedCount.collectAsState()
 
+    // Search query state
+    var searchQuery by remember { mutableStateOf("") }
 
+    // Handle task categorization (Due Today and Overdue)
     val dueToday = tasks.filter {
         try {
             LocalDate.parse(it.dueDate, formatter) == today
@@ -41,6 +47,12 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
         } catch (e: Exception) {
             false
         }
+    }
+
+    // Filter tasks based on search query
+    val filteredTasks = tasks.filter {
+        it.name.contains(searchQuery, ignoreCase = true) ||
+                it.description.contains(searchQuery, ignoreCase = true)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -71,10 +83,23 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Search Bar
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search Tasks") },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search Icon") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Tasks List
         Text("Tasks", style = MaterialTheme.typography.titleMedium)
 
         LazyColumn {
-            items(tasks) { task ->
+            items(filteredTasks) { task ->
                 TaskItem(task = task, onComplete = { viewModel.markTaskCompleted(task) })
             }
         }
@@ -114,3 +139,4 @@ fun TaskItem(task: Task, onComplete: () -> Unit) {
         }
     }
 }
+
