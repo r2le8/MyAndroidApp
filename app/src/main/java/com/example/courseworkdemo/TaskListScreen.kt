@@ -20,8 +20,17 @@ import androidx.compose.ui.platform.LocalContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
-    val taskList by viewModel.tasks.collectAsState()
+    val taskList by viewModel.activeTasks.collectAsState()
     val context = LocalContext.current
+
+    // Use remember to track visible tasks on this screen
+    var visibleTasks by remember { mutableStateOf(taskList) }
+
+    // Sync with ViewModel whenever taskList changes
+    LaunchedEffect(taskList) {
+        visibleTasks = taskList
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -34,24 +43,33 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
             )
         }
     ) { paddingValues ->
-        LazyColumn(modifier = Modifier
-            .padding(paddingValues)
-            .padding(16.dp)) {
-            items(taskList) { task ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            items(visibleTasks, key = { it.id }) { task ->
                 TaskCard(
                     task = task,
-                    onComplete = { viewModel.markTaskCompleted(task) },
-                    onDelete = { viewModel.deleteTask(task.id) },
+                    onComplete = {
+                        viewModel.markTaskCompleted(task)
+                        // Immediately remove from visible tasks
+                        visibleTasks = visibleTasks.filter { it.id != task.id }
+                    },
+                    onDelete = {
+                        viewModel.deleteTask(task.id)
+                        visibleTasks = visibleTasks.filter { it.id != task.id }
+                    },
                     onEdit = {
                         // Optional: Navigate to EditTaskScreen
                     },
-                    onShare = { shareTask(context, task) } // ✅ Pass context-based share callback
+                    onShare = { shareTask(context, task) }
                 )
-
             }
         }
     }
 }
+
 @Composable
 fun TaskCard(
     task: Task,
