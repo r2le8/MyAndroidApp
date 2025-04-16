@@ -58,7 +58,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.0")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
-
+    implementation ("com.google.accompanist:accompanist-navigation-material:0.32.0")
     implementation ("androidx.core:core-ktx:1.15.0")  // Older version
     implementation ("androidx.core:core:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
