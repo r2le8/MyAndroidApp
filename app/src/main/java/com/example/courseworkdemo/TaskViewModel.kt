@@ -1,5 +1,7 @@
 package com.example.courseworkdemo
 
+import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +16,6 @@ class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks
-
 
     // NEW: Only show tasks that are not completed
     val activeTasks: StateFlow<List<Task>> = tasks
@@ -32,16 +33,21 @@ class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
 
     private fun loadTasks() {
         viewModelScope.launch {
-            _tasks.value = taskDao.getAllTasks()
+            val allTasks = taskDao.getAllTasks()
+            Log.d("TaskViewModel", "📋 Loaded ${allTasks.size} tasks from DB: ${allTasks.map { it.name + " (" + it.dueDate + ")" }}")
+            _tasks.value = allTasks
         }
     }
+
 
     fun addTask(task: Task) {
         viewModelScope.launch {
             taskDao.insert(task)
+            Log.d("TaskViewModel", "💾 Inserted task: ${task.name}, due: ${task.dueDate}")
             loadTasks() // Refresh task list
         }
     }
+
 
     fun markTaskCompleted(task: Task) {
         viewModelScope.launch {

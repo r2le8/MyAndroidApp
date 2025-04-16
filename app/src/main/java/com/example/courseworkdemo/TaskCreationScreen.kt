@@ -1,6 +1,7 @@
 package com.example.courseworkdemo
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.widget.DatePicker
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -11,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.workDataOf
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -96,11 +99,30 @@ fun TaskCreationScreen(navController: NavController, viewModel: TaskViewModel) {
                 priority = priority
             )
             viewModel.addTask(newTask)
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-            val workRequest = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
-                .setInitialDelay(10, TimeUnit.SECONDS)
-                .build()
-            WorkManager.getInstance(context).enqueue(workRequest)
+            // Parse the due date
+            val taskDueDate = sdf.parse(dueDate)
+            if (taskDueDate != null) {
+                // Set notifications for the day before and on the due date
+                val taskDueCalendar = Calendar.getInstance().apply { time = taskDueDate }
+
+                // Schedule notification for a day before the due date
+                val oneDayBefore = taskDueCalendar.apply { add(Calendar.DAY_OF_YEAR, -1) }
+                val workRequest1 = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
+                    .setInputData(workDataOf("due_date" to dueDate))
+                    .setInitialDelay(oneDayBefore.timeInMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .build()
+
+                // Schedule notification for the due date
+                val workRequest2 = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
+                    .setInputData(workDataOf("due_date" to dueDate))
+                    .setInitialDelay(taskDueDate.time - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .build()
+
+                WorkManager.getInstance(context).enqueue(workRequest1)
+                WorkManager.getInstance(context).enqueue(workRequest2)
+            }
 
             navController.popBackStack()
         }) {
@@ -111,8 +133,8 @@ fun TaskCreationScreen(navController: NavController, viewModel: TaskViewModel) {
             Text("Task name is required", color = MaterialTheme.colorScheme.error)
         }
     }
-}
 
+}
 @Composable
 fun DropdownSelector(label: String, options: List<String>, selected: String, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }

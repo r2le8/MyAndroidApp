@@ -13,11 +13,11 @@ interface TaskDao {
     @Update
     suspend fun update(task: Task)
 
-    @Query("SELECT * FROM tasks WHERE isCompleted = 0")
-    suspend fun getActiveTasks(): List<Task>
 
     @Query("SELECT * FROM tasks")
     suspend fun getAllTasks(): List<Task>
+    @Query("SELECT * FROM tasks WHERE id = :taskId LIMIT 1")
+    suspend fun getTaskById(taskId: Int): Task?
 
 
     @Query("DELETE FROM tasks WHERE id = :taskId")
