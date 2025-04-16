@@ -50,10 +50,19 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
     }
 
     // Filter tasks based on search query
-    val filteredTasks = tasks.filter {
-        it.name.contains(searchQuery, ignoreCase = true) ||
-                it.description.contains(searchQuery, ignoreCase = true)
-    }
+    val filteredTasks = tasks
+        .filter {
+            it.name.contains(searchQuery, ignoreCase = true) ||
+                    it.description.contains(searchQuery, ignoreCase = true)
+        }
+        .sortedBy {
+            try {
+                LocalDate.parse(it.dueDate, formatter)
+            } catch (e: Exception) {
+                LocalDate.MAX // Puts tasks with invalid dates at the end
+            }
+        }
+
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Welcome Back!", style = MaterialTheme.typography.headlineMedium)
