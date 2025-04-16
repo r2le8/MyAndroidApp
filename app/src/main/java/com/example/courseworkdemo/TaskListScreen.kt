@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.ui.platform.LocalContext
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,13 +23,28 @@ import androidx.compose.ui.platform.LocalContext
 fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
     val taskList by viewModel.activeTasks.collectAsState()
     val context = LocalContext.current
+    val formatter = remember { java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy") }
 
-    // Use remember to track visible tasks on this screen
-    var visibleTasks by remember { mutableStateOf(taskList) }
+    var selectedCategory by remember { mutableStateOf("All") }
 
-    // Sync with ViewModel whenever taskList changes
-    LaunchedEffect(taskList) {
-        visibleTasks = taskList
+    // Get unique categories for the dropdown
+    val categories = remember(taskList) {
+        listOf("All") + taskList.map { it.category }.distinct().sorted()
+    }
+
+    // Filter and sort tasks
+    val visibleTasks by remember(taskList, selectedCategory) {
+        mutableStateOf(
+            taskList
+                .filter { selectedCategory == "All" || it.category == selectedCategory }
+                .sortedBy {
+                    try {
+                        java.time.LocalDate.parse(it.dueDate, formatter)
+                    } catch (e: Exception) {
+                        java.time.LocalDate.MAX
+                    }
+                }
+        )
     }
 
     Scaffold(
@@ -43,27 +59,68 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp)
+        Column(modifier = Modifier
+            .padding(paddingValues)
+            .padding(16.dp)
         ) {
-            items(visibleTasks, key = { it.id }) { task ->
-                TaskCard(
-                    task = task,
-                    onComplete = {
-                        viewModel.markTaskCompleted(task)
-                        // Immediately remove from visible tasks
-                        visibleTasks = visibleTasks.filter { it.id != task.id }
-                    },
-                    onDelete = {
-                        viewModel.deleteTask(task.id)
-                        visibleTasks = visibleTasks.filter { it.id != task.id }
-                    },
-                    onEdit = {
-                        // Optional: Navigate to EditTaskScreen
-                    },
-                    onShare = { shareTask(context, task) }
+            // Dropdown filter
+            CategoryDropdown(
+                categories = categories,
+                selected = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyColumn {
+                items(visibleTasks, key = { it.id }) { task ->
+                    TaskCard(
+                        task = task,
+                        onComplete = {
+                            viewModel.markTaskCompleted(task)
+                        },
+                        onDelete = {
+                            viewModel.deleteTask(task.id)
+                        },
+                        onEdit = {
+                            // Optional: Navigate to edit screen
+                        },
+                        onShare = { shareTask(context, task) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoryDropdown(
+    categories: List<String>,
+    selected: String,
+    onCategorySelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Category: $selected")
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            categories.forEach { category ->
+                DropdownMenuItem(
+                    text = { Text(category) },
+                    onClick = {
+                        onCategorySelected(category)
+                        expanded = false
+                    }
                 )
             }
         }
