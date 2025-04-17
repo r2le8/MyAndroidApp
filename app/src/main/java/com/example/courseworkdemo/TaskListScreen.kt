@@ -13,11 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.saveable.rememberSaveable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
@@ -25,7 +27,7 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
     val context = LocalContext.current
     val formatter = remember { java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy") }
 
-    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedCategory by rememberSaveable { mutableStateOf("All") }
 
     // Get unique categories for the dropdown
     val categories = remember(taskList) {
@@ -71,8 +73,11 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+            val listState = rememberSaveable(saver = LazyListState.Saver) {
+                LazyListState()
+            }
 
-            LazyColumn {
+            LazyColumn (state = listState){
                 items(visibleTasks, key = { it.id }) { task ->
                     TaskCard(
                         task = task,
