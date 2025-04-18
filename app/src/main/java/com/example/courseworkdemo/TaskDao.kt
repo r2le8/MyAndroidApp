@@ -1,5 +1,6 @@
 package com.example.courseworkdemo
 
+import android.database.Cursor
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -22,4 +23,6 @@ interface TaskDao {
 
     @Query("DELETE FROM tasks WHERE id = :taskId")
     suspend fun deleteTask(taskId: Int)
+    @Query("SELECT * FROM tasks")
+    fun getAllTasksCursor(): Cursor
 }

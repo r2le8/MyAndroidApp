@@ -13,4 +13,5 @@ data class Task(
     val category: String,
     val priority: String,
     val isCompleted: Boolean = false
+
 )
