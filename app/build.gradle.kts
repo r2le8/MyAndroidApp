@@ -59,8 +59,7 @@ dependencies {
     implementation("androidx.test.ext:junit-ktx:1.2.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
-    implementation ("com.google.accompanist:accompanist-navigation-material:0.32.0")
-    implementation ("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
@@ -78,7 +77,6 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.test:core:1.5.2")
-
-
+    implementation("androidx.compose.material:material:1.5.0") // Material2 for BottomNavigation
 
 }

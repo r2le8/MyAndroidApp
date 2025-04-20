@@ -125,16 +125,27 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
 @Composable
 fun TaskStatCard(label: String, count: Int) {
     Card(
-        modifier = Modifier.padding(4.dp),
+        modifier = Modifier
+            .padding(4.dp)
+            .size(100.dp, 120.dp),  // Set a fixed width and height for the card
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
-        Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()  // Ensure the Column takes up all available space in the Card
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center  // Vertically center the content
+        ) {
             Text(label, style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.height(8.dp))
             Text(count.toString(), style = MaterialTheme.typography.titleLarge)
         }
     }
 }
+
+
 
 
 
