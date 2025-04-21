@@ -22,12 +22,19 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.darkColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.lightColors
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,28 +58,46 @@ class MainActivity : ComponentActivity() {
         val taskDao = db.taskDao()
         val viewModel = TaskViewModel(taskDao)
 
+
         setContent {
             val navController = rememberNavController()
-            Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                Scaffold(
-                    bottomBar = { BottomNavBar(navController) }
-                ) { _ ->  // Ignore paddingValues
-                    NavHost(
-                        navController = navController,
-                        startDestination = "home",
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 28.dp)
-                            .fillMaxSize()
-                    ) {
-                        composable("home") { HomeScreen(navController, viewModel) }
-                        composable("task_creation") { TaskCreationScreen(navController, viewModel) }
-                        composable("task_list") { TaskListScreen(navController, viewModel) }
+            var darkModeEnabled by remember { mutableStateOf(false) }
+
+            // Apply dark mode theme dynamically
+            // Apply dark mode theme dynamically using colorScheme
+            val colors = if (darkModeEnabled) darkColorScheme() else lightColorScheme()
+
+            MaterialTheme(
+                colorScheme = colors
+            ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    Scaffold(
+                        bottomBar = { BottomNavBar(navController) }
+                    ) { _ ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = "home",
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 28.dp)
+                                .fillMaxSize()
+                        ) {
+                            composable("home") { HomeScreen(navController, viewModel) }
+                            composable("task_creation") { TaskCreationScreen(navController, viewModel) }
+                            composable("task_list") { TaskListScreen(navController, viewModel) }
+                            composable("settings") {
+                                SettingsScreen(
+                                    isDarkMode = darkModeEnabled,
+                                    onDarkModeChanged = { darkModeEnabled = it }
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+
 @Composable
 fun BottomNavBar(navController: NavController) {
     BottomNavigation(
@@ -97,5 +122,6 @@ fun BottomNavBar(navController: NavController) {
             selected = false,
             onClick = { navController.navigate("task_list") }
         )
+
     }
 }
