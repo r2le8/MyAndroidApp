@@ -60,7 +60,9 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = navController,
                         startDestination = "home",
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 28.dp)
+                            .fillMaxSize()
                     ) {
                         composable("home") { HomeScreen(navController, viewModel) }
                         composable("task_creation") { TaskCreationScreen(navController, viewModel) }
