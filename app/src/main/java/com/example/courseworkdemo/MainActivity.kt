@@ -56,11 +56,11 @@ class MainActivity : ComponentActivity() {
             Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                 Scaffold(
                     bottomBar = { BottomNavBar(navController) }
-                ) { paddingValues ->
+                ) { _ ->  // Ignore paddingValues
                     NavHost(
                         navController = navController,
                         startDestination = "home",
-                        modifier = Modifier.padding(paddingValues)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         composable("home") { HomeScreen(navController, viewModel) }
                         composable("task_creation") { TaskCreationScreen(navController, viewModel) }

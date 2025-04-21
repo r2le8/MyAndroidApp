@@ -1,6 +1,7 @@
 package com.example.courseworkdemo
 import android.content.Context
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
@@ -20,6 +21,9 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
@@ -52,18 +56,24 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Task List") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
+                title = {
+                    Text(
+                        text = "Task List",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                modifier = Modifier.height(70.dp), // Standard AppBar height
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier
-            .padding(paddingValues)
-            .padding(16.dp)
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxSize()
         ) {
             // Dropdown filter
             CategoryDropdown(
@@ -72,33 +82,41 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
                 onCategorySelected = { selectedCategory = it }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
             val listState = rememberSaveable(saver = LazyListState.Saver) {
                 LazyListState()
             }
 
-            LazyColumn (state = listState){
-                items(visibleTasks, key = { it.id }) { task ->
-                    TaskCard(
-                        task = task,
-                        onComplete = {
-                            viewModel.markTaskCompleted(task)
-                        },
-                        onDelete = {
-                            viewModel.deleteTask(task.id)
-                        },
-                        onEdit = {
-                            // Optional: Navigate to edit screen
-                        },
-                        onShare = { shareTask(context, task) }
-                    )
+            // Wrap LazyColumn in a Box with weight to limit height
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(visibleTasks, key = { it.id }) { task ->
+                        TaskCard(
+                            task = task,
+                            onComplete = { viewModel.markTaskCompleted(task) },
+                            onDelete = { viewModel.deleteTask(task.id) },
+                            onEdit = { /* Optional: Navigate to edit screen */ },
+                            onShare = { shareTask(context, task) }
+                        )
+                    }
                 }
             }
         }
     }
+
 }
 
-@Composable
+
+    @Composable
 fun CategoryDropdown(
     categories: List<String>,
     selected: String,
@@ -109,9 +127,12 @@ fun CategoryDropdown(
     Box {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            )
         ) {
-            Text("Category: $selected")
+            Text("Category: $selected", style = MaterialTheme.typography.bodyMedium)
             Icon(Icons.Default.ArrowDropDown, contentDescription = null)
         }
 
@@ -138,12 +159,20 @@ fun TaskCard(
     onComplete: () -> Unit,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    onShare: () -> Unit // ✅ New param
+    onShare: () -> Unit
 ) {
+    // Define the priority color based on task priority
     val priorityColor = when (task.priority.lowercase()) {
-        "high" -> Color.Red
-        "medium" -> Color.Yellow
-        else -> Color.Green
+        "high" -> Color(0xFFFF5C5C) // A modern red shade for high priority
+        "medium" -> Color(0xFFFFC107) // A vibrant yellow for medium priority
+        else -> Color(0xFF4CAF50) // A fresh green for low priority
+    }
+
+    // Define card background color based on priority
+    val cardBackgroundColor = when (task.priority.lowercase()) {
+        "high" -> Color(0xFFF8D7DA) // Light red background for high priority
+        "medium" -> Color(0xFFFFF3CD) // Light yellow background for medium priority
+        else -> Color(0xFFE8F5E9) // Light green background for low priority
     }
 
     Card(
@@ -151,15 +180,24 @@ fun TaskCard(
             .fillMaxWidth()
             .padding(8.dp)
             .clickable { onEdit() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Title and Due Date
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(task.name, style = MaterialTheme.typography.titleMedium)
                 Text(task.dueDate, style = MaterialTheme.typography.bodySmall)
             }
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Description and Category
             Text(task.description, style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.height(6.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
@@ -167,20 +205,27 @@ fun TaskCard(
                 Text("Category: ${task.category}", style = MaterialTheme.typography.bodySmall)
                 Text("Priority: ${task.priority}", color = priorityColor)
             }
-            Row {
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Icon buttons aligned to the right
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 IconButton(onClick = onComplete) {
                     Icon(Icons.Default.Check, contentDescription = "Complete Task")
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete Task")
                 }
-                IconButton(onClick = onShare) { // ✅ Share icon button
+                IconButton(onClick = onShare) {
                     Icon(Icons.Default.Share, contentDescription = "Share Task")
                 }
             }
         }
     }
 }
+
 
 fun shareTask(context: Context, task: Task) {
     val shareIntent = Intent().apply {
@@ -190,4 +235,3 @@ fun shareTask(context: Context, task: Task) {
     }
     context.startActivity(Intent.createChooser(shareIntent, "Share task via"))
 }
-
