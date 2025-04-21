@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
@@ -66,12 +68,16 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
             }
         }
 
-
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Welcome Back!", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = "Welcome Back!",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Quick stats
+        // Quick stats row
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
             TaskStatCard("Due Today", dueToday.size)
             TaskStatCard("Overdue", overdue.size)
@@ -79,6 +85,8 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Buttons for adding task or going to task list
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Button(
                 onClick = { navController.navigate("task_creation") },
@@ -102,25 +110,98 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
             onValueChange = { searchQuery = it },
             label = { Text("Search Tasks") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search Icon") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Tasks List
-        Text("Tasks", style = MaterialTheme.typography.titleMedium)
+        // Tasks Header with Legend on the right
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "📌 Tasks",
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Start
+            )
 
-        LazyColumn {
-            items(filteredTasks, key = { it.id }) { task ->
-                SwipeToDeleteTaskItem(
-                    task = task,
-                    onDelete = { viewModel.deleteTask(task.id) },
-                    onComplete = { viewModel.markTaskCompleted(task) }
+            // Add the legend here
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LegendItem(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                    label = "Overdue"
                 )
+                LegendItem(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    label = "Due Soon"
+                )
+                LegendItem(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    label = "Upcoming"
+                )
+            }
+        }
+
+        Divider(
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+            thickness = 1.dp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        // Display tasks or "You're all caught up!" message
+        if (filteredTasks.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("🎉 You're all caught up!", style = MaterialTheme.typography.bodyLarge)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredTasks, key = { it.id }) { task ->
+                    SwipeToDeleteTaskItem(
+                        task = task,
+                        onDelete = { viewModel.deleteTask(task.id) },
+                        onComplete = { viewModel.markTaskCompleted(task) }
+                    )
+                }
             }
         }
     }
 }
+@Composable
+fun LegendItem(color: Color, label: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .background(color = color, shape = RoundedCornerShape(4.dp))
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(text = label, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
 
 @Composable
 fun TaskStatCard(label: String, count: Int) {
@@ -185,20 +266,56 @@ fun TaskStatCard(label: String, count: Int) {
                 }
             },
             dismissContent = {
+                // Parse due date
+                val formatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+                val dueDate = try {
+                    LocalDate.parse(task.dueDate, formatter)
+                } catch (e: Exception) {
+                    null
+                }
+                val today = LocalDate.now()
+
+                // Determine background color
+                val backgroundColor = when {
+                    dueDate == null -> MaterialTheme.colorScheme.surfaceVariant
+                    dueDate.isBefore(today) -> MaterialTheme.colorScheme.errorContainer       // Overdue
+                    dueDate.isBefore(today.plusDays(2)) -> MaterialTheme.colorScheme.tertiaryContainer // Due soon
+                    else -> MaterialTheme.colorScheme.surfaceVariant                          // Normal
+                }
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = backgroundColor)
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(task.name, style = MaterialTheme.typography.titleMedium)
-                        Text("Due: ${task.dueDate}", style = MaterialTheme.typography.bodySmall)
-                        Row {
-                            Button(onClick = onComplete) {
-                                Text("✔ Complete")
-                            }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(2f)) {
+                            Text(task.name, style = MaterialTheme.typography.titleMedium)
+                        }
+
+                        Text(
+                            text = task.dueDate,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.End
+                        )
+
+                        Button(
+                            onClick = onComplete,
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .height(36.dp)
+                        ) {
+                            Text("✔")
                         }
                     }
                 }
