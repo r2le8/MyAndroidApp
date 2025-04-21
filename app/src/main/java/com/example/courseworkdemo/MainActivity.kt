@@ -84,16 +84,16 @@ fun BottomNavBar(navController: NavController) {
             onClick = { navController.navigate("home") }
         )
         BottomNavigationItem(
-            icon = { Icon(Icons.Filled.List, contentDescription = "Tasks") },
-            label = { Text("Tasks") },
-            selected = false,
-            onClick = { navController.navigate("task_list") }
-        )
-        BottomNavigationItem(
             icon = { Icon(Icons.Filled.Add, contentDescription = "Add Task") },
             label = { Text("Add") },
             selected = false,
             onClick = { navController.navigate("task_creation") }
+        )
+        BottomNavigationItem(
+            icon = { Icon(Icons.Filled.List, contentDescription = "Tasks") },
+            label = { Text("Tasks") },
+            selected = false,
+            onClick = { navController.navigate("task_list") }
         )
     }
 }
