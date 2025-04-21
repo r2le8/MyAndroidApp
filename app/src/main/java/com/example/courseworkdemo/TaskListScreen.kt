@@ -3,6 +3,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,11 +114,9 @@ fun TaskListScreen(navController: NavController, viewModel: TaskViewModel) {
             }
         }
     }
-
 }
 
-
-    @Composable
+@Composable
 fun CategoryDropdown(
     categories: List<String>,
     selected: String,
@@ -152,7 +152,6 @@ fun CategoryDropdown(
         }
     }
 }
-
 @Composable
 fun TaskCard(
     task: Task,
@@ -161,18 +160,21 @@ fun TaskCard(
     onEdit: () -> Unit,
     onShare: () -> Unit
 ) {
-    // Define the priority color based on task priority
+    val backgroundColor = MaterialTheme.colorScheme.surface
+    val textColor = MaterialTheme.colorScheme.onSurface // Use theme's onSurface for text color
+
+    // Priority colors based on Material Design 3 colors
     val priorityColor = when (task.priority.lowercase()) {
-        "high" -> Color(0xFFFF5C5C) // A modern red shade for high priority
-        "medium" -> Color(0xFFFFC107) // A vibrant yellow for medium priority
-        else -> Color(0xFF4CAF50) // A fresh green for low priority
+        "high" -> MaterialTheme.colorScheme.error // Red from MD3 for high priority
+        "medium" -> MaterialTheme.colorScheme.tertiary  // Yellow from MD3 for medium priority
+        else -> MaterialTheme.colorScheme.primary // Green from MD3 for low priority
     }
 
-    // Define card background color based on priority
+    // Card background color based on priority
     val cardBackgroundColor = when (task.priority.lowercase()) {
-        "high" -> Color(0xFFF8D7DA) // Light red background for high priority
-        "medium" -> Color(0xFFFFF3CD) // Light yellow background for medium priority
-        else -> Color(0xFFE8F5E9) // Light green background for low priority
+        "high" -> MaterialTheme.colorScheme.errorContainer // Light red from MD3 for high priority
+        "medium" -> MaterialTheme.colorScheme.tertiaryContainer // Light yellow from MD3 for medium priority
+        else -> MaterialTheme.colorScheme.primaryContainer // Light green from MD3 for low priority
     }
 
     Card(
@@ -190,19 +192,19 @@ fun TaskCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(task.name, style = MaterialTheme.typography.titleMedium)
-                Text(task.dueDate, style = MaterialTheme.typography.bodySmall)
+                Text(task.name, style = MaterialTheme.typography.titleMedium, color = textColor)
+                Text(task.dueDate, style = MaterialTheme.typography.bodySmall, color = textColor)
             }
             Spacer(modifier = Modifier.height(6.dp))
 
             // Description and Category
-            Text(task.description, style = MaterialTheme.typography.bodyMedium)
+            Text(task.description, style = MaterialTheme.typography.bodyMedium, color = textColor)
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Category: ${task.category}", style = MaterialTheme.typography.bodySmall)
+                Text("Category: ${task.category}", style = MaterialTheme.typography.bodySmall, color = textColor)
                 Text("Priority: ${task.priority}", color = priorityColor)
             }
             Spacer(modifier = Modifier.height(6.dp))
@@ -213,18 +215,19 @@ fun TaskCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 IconButton(onClick = onComplete) {
-                    Icon(Icons.Default.Check, contentDescription = "Complete Task")
+                    Icon(Icons.Default.Check, contentDescription = "Complete Task", tint = textColor)
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete Task")
+                    Icon(Icons.Default.Delete, contentDescription = "Delete Task", tint = textColor)
                 }
                 IconButton(onClick = onShare) {
-                    Icon(Icons.Default.Share, contentDescription = "Share Task")
+                    Icon(Icons.Default.Share, contentDescription = "Share Task", tint = textColor)
                 }
             }
         }
     }
 }
+
 
 
 fun shareTask(context: Context, task: Task) {
