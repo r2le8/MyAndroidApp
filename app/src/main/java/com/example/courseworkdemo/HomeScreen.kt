@@ -69,6 +69,7 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
                 LocalDate.MAX // Puts tasks with invalid dates at the end
             }
         }
+    var showUndoButton by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
@@ -153,6 +154,14 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
                 )
             }
         }
+        if (showUndoButton) {
+            Button(onClick = {
+                viewModel.undoDelete()
+                showUndoButton = false // Hide the undo button after the action
+            }) {
+                Text("Undo Delete")
+            }
+        }
 
         Divider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
@@ -180,7 +189,10 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
                 items(filteredTasks, key = { it.id }) { task ->
                     SwipeToDeleteTaskItem(
                         task = task,
-                        onDelete = { viewModel.deleteTask(task.id) },
+                        onDelete = {
+                            showUndoButton = true // Show the undo button when a task is deleted
+                            viewModel.deleteTask(task.id)
+                        },
                         onComplete = { viewModel.markTaskCompleted(task) }
                     )
                 }

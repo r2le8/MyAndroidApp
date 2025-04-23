@@ -13,16 +13,15 @@ import kotlinx.coroutines.flow.SharingStarted
 
 
 class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
+    private var lastDeletedTask: Task? = null
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasks: StateFlow<List<Task>> = _tasks
 
-    // NEW: Only show tasks that are not completed
     val activeTasks: StateFlow<List<Task>> = tasks
         .map { it.filter { task -> !task.isCompleted } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    // NEW: Count of completed tasks
     val completedCount: StateFlow<Int> = tasks
         .map { it.count { task -> task.isCompleted } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
@@ -34,20 +33,16 @@ class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
     private fun loadTasks() {
         viewModelScope.launch {
             val allTasks = taskDao.getAllTasks()
-            Log.d("TaskViewModel", "📋 Loaded ${allTasks.size} tasks from DB: ${allTasks.map { it.name + " (" + it.dueDate + ")" }}")
             _tasks.value = allTasks
         }
     }
 
-
     fun addTask(task: Task) {
         viewModelScope.launch {
             taskDao.insert(task)
-            Log.d("TaskViewModel", "💾 Inserted task: ${task.name}, due: ${task.dueDate}")
             loadTasks() // Refresh task list
         }
     }
-
 
     fun markTaskCompleted(task: Task) {
         viewModelScope.launch {
@@ -58,8 +53,22 @@ class TaskViewModel(private val taskDao: TaskDao) : ViewModel() {
 
     fun deleteTask(taskId: Int) {
         viewModelScope.launch {
+            val task = taskDao.getTaskById(taskId) // Fetch the task before deletion
+            lastDeletedTask = task // Store the task for undo
             taskDao.deleteTask(taskId)
             loadTasks() // Refresh task list
         }
     }
+
+    // Undo last delete action
+    fun undoDelete() {
+        lastDeletedTask?.let { task ->
+            viewModelScope.launch {
+                taskDao.insert(task) // Restore the task
+                lastDeletedTask = null // Clear the undo buffer
+                loadTasks() // Refresh task list
+            }
+        }
+    }
 }
+
