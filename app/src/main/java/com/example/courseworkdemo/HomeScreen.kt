@@ -77,12 +77,6 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
-        Button(
-            onClick = { navController.navigate("settings") },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("⚙️ Settings")
-        }
         Spacer(modifier = Modifier.height(16.dp))
 
         // Quick stats row
