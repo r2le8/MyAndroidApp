@@ -231,10 +231,20 @@ fun TaskCard(
 
 
 fun shareTask(context: Context, task: Task) {
+    val shareText = """
+        Hi, I want to share a task with you.
+
+        Task: ${task.name}
+        Task Detail: ${task.description}
+        Due: ${task.dueDate}
+    """.trimIndent()
+
     val shareIntent = Intent().apply {
         action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_TEXT, "Task: ${task.name}\n${task.description}")
+        putExtra(Intent.EXTRA_TEXT, shareText)
         type = "text/plain"
     }
+
     context.startActivity(Intent.createChooser(shareIntent, "Share task via"))
 }
+
