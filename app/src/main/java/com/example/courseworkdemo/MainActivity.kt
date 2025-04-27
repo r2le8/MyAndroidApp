@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             var darkModeEnabled by remember { mutableStateOf(false) }
-
+            var notificationsEnabled by remember { mutableStateOf(true) }
             // Apply dark mode theme dynamically
             // Apply dark mode theme dynamically using colorScheme
             val colors = if (darkModeEnabled) darkColorScheme() else lightColorScheme()
@@ -82,12 +82,14 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                         ) {
                             composable("home") { HomeScreen(navController, viewModel) }
-                            composable("task_creation") { TaskCreationScreen(navController, viewModel) }
+                            composable("task_creation") { TaskCreationScreen(navController, viewModel,notificationsEnabled = notificationsEnabled) }
                             composable("task_list") { TaskListScreen(navController, viewModel) }
                             composable("settings") {
                                 SettingsScreen(
                                     isDarkMode = darkModeEnabled,
-                                    onDarkModeChanged = { darkModeEnabled = it }
+                                    onDarkModeChanged = { darkModeEnabled = it },
+                                    notificationsEnabled = notificationsEnabled,
+                                    onNotificationsChanged = { notificationsEnabled = it }
                                 )
                             }
                         }
@@ -122,6 +124,11 @@ fun BottomNavBar(navController: NavController) {
             selected = false,
             onClick = { navController.navigate("task_list") }
         )
-
+        BottomNavigationItem(
+            icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },  // <-- ADD THIS
+            label = { Text("Settings") },
+            selected = false,
+            onClick = { navController.navigate("settings") }
+        )
     }
 }

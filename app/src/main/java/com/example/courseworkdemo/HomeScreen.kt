@@ -154,6 +154,11 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
                 )
             }
         }
+        Divider(
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+            thickness = 1.dp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
         if (showUndoButton) {
             Button(onClick = {
                 viewModel.undoDelete()
@@ -162,12 +167,6 @@ fun HomeScreen(navController: NavController, viewModel: TaskViewModel) {
                 Text("Undo Delete")
             }
         }
-
-        Divider(
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-            thickness = 1.dp,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
 
         // Display tasks or "You're all caught up!" message
         if (filteredTasks.isEmpty()) {

@@ -31,11 +31,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsScreen(
     isDarkMode: Boolean,
-    onDarkModeChanged: (Boolean) -> Unit
+    onDarkModeChanged: (Boolean) -> Unit,
+    notificationsEnabled: Boolean,
+    onNotificationsChanged: (Boolean) -> Unit
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var selectedLanguage by remember { mutableStateOf("English") }
-    var backgroundSoundEnabled by remember { mutableStateOf(true) }
 
     Column(
         modifier = Modifier
@@ -50,18 +49,9 @@ fun SettingsScreen(
         RowSettingItem("Dark Mode", isDarkMode) { onDarkModeChanged(it) }
 
         // Notifications Toggle
-        RowSettingItem("Enable Notifications", notificationsEnabled) { notificationsEnabled = it }
+        RowSettingItem("Enable Notifications", notificationsEnabled) { onNotificationsChanged(it) }
 
-        // Background Sound
-        RowSettingItem("Background Sound", backgroundSoundEnabled) { backgroundSoundEnabled = it }
-
-        // Language Dropdown
-        Text("Language", style = MaterialTheme.typography.titleMedium)
-        DropdownSetting(
-            options = listOf("English", "Chinese", "Spanish"),
-            selectedOption = selectedLanguage,
-            onOptionSelected = { selectedLanguage = it }
-        )
+        // ... rest
     }
 }
 
@@ -80,36 +70,4 @@ fun RowSettingItem(label: String, checked: Boolean, onCheckedChange: (Boolean) -
     }
 }
 
-@Composable
-fun DropdownSetting(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
 
-    Box {
-        OutlinedTextField(
-            value = selectedOption,
-            onValueChange = {},
-            label = { Text("Select Language") },
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
-                }
-            }
-        )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}

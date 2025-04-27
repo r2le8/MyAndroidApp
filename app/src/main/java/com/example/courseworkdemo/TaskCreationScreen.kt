@@ -18,7 +18,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun TaskCreationScreen(navController: NavController, viewModel: TaskViewModel) {
+fun TaskCreationScreen(navController: NavController, viewModel: TaskViewModel,notificationsEnabled: Boolean) {
     val context = LocalContext.current
     var taskName by remember { mutableStateOf("") }
     var taskDescription by remember { mutableStateOf("") }
@@ -26,6 +26,7 @@ fun TaskCreationScreen(navController: NavController, viewModel: TaskViewModel) {
     var category by remember { mutableStateOf("Personal") }
     var priority by remember { mutableStateOf("Medium") }
     var showError by remember { mutableStateOf(false) }
+
 
     val calendar = Calendar.getInstance()
     val datePickerDialog = DatePickerDialog(
@@ -122,21 +123,24 @@ fun TaskCreationScreen(navController: NavController, viewModel: TaskViewModel) {
                     // Set notifications for the day before and on the due date
                     val taskDueCalendar = Calendar.getInstance().apply { time = taskDueDate }
 
-                    // Schedule notification for a day before the due date
-                    val oneDayBefore = taskDueCalendar.apply { add(Calendar.DAY_OF_YEAR, -1) }
-                    val workRequest1 = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
-                        .setInputData(workDataOf("due_date" to dueDate))
-                        .setInitialDelay(oneDayBefore.timeInMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                        .build()
+                    // Only schedule notifications if they are enabled
+                    if (notificationsEnabled) {
+                        // Schedule notification for a day before the due date
+                        val oneDayBefore = taskDueCalendar.apply { add(Calendar.DAY_OF_YEAR, -1) }
+                        val workRequest1 = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
+                            .setInputData(workDataOf("due_date" to dueDate))
+                            .setInitialDelay(oneDayBefore.timeInMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                            .build()
 
-                    // Schedule notification for the due date
-                    val workRequest2 = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
-                        .setInputData(workDataOf("due_date" to dueDate))
-                        .setInitialDelay(taskDueDate.time - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                        .build()
+                        // Schedule notification for the due date
+                        val workRequest2 = OneTimeWorkRequestBuilder<TaskNotificationWorker>()
+                            .setInputData(workDataOf("due_date" to dueDate))
+                            .setInitialDelay(taskDueDate.time - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                            .build()
 
-                    WorkManager.getInstance(context).enqueue(workRequest1)
-                    WorkManager.getInstance(context).enqueue(workRequest2)
+                        WorkManager.getInstance(context).enqueue(workRequest1)
+                        WorkManager.getInstance(context).enqueue(workRequest2)
+                    }
                 }
 
                 navController.popBackStack()
